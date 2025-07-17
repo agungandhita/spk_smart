@@ -19,7 +19,7 @@ class RekomendasiController extends Controller
     {
         $user = Auth::user();
         $dosen = $user->dosen;
-        
+
         if (!$dosen) {
             abort(404, 'Data dosen tidak ditemukan');
         }
@@ -61,7 +61,7 @@ class RekomendasiController extends Controller
     {
         $user = Auth::user();
         $dosen = $user->dosen;
-        
+
         if (!$dosen) {
             abort(404, 'Data dosen tidak ditemukan');
         }
@@ -96,7 +96,7 @@ class RekomendasiController extends Controller
     {
         $user = Auth::user();
         $dosen = $user->dosen;
-        
+
         if (!$dosen) {
             abort(404, 'Data dosen tidak ditemukan');
         }
@@ -192,7 +192,7 @@ class RekomendasiController extends Controller
     {
         $user = Auth::user();
         $dosen = $user->dosen;
-        
+
         if (!$dosen) {
             abort(404, 'Data dosen tidak ditemukan');
         }
@@ -212,7 +212,7 @@ class RekomendasiController extends Controller
     {
         $user = Auth::user();
         $dosen = $user->dosen;
-        
+
         if (!$dosen) {
             abort(404, 'Data dosen tidak ditemukan');
         }
@@ -240,7 +240,7 @@ class RekomendasiController extends Controller
     {
         $user = Auth::user();
         $dosen = $user->dosen;
-        
+
         if (!$dosen) {
             abort(404, 'Data dosen tidak ditemukan');
         }
@@ -268,14 +268,14 @@ class RekomendasiController extends Controller
     {
         $len1 = strlen($str1);
         $len2 = strlen($str2);
-        
+
         if ($len1 == 0 || $len2 == 0) {
             return 0;
         }
-        
+
         $distance = levenshtein($str1, $str2);
         $maxLen = max($len1, $len2);
-        
+
         return 1 - ($distance / $maxLen);
     }
 
@@ -286,7 +286,7 @@ class RekomendasiController extends Controller
     {
         $user = Auth::user();
         $dosen = $user->dosen;
-        
+
         if (!$dosen) {
             return response()->json([
                 'success' => false,
@@ -308,7 +308,7 @@ class RekomendasiController extends Controller
 
             // Template judul berdasarkan bidang keahlian dosen
             $templates = $this->getJudulTemplates($dosen->bidang_keahlian, $pengajuan);
-            
+
             $recommendations = [];
             foreach ($templates as $template) {
                 $smartScore = RekomendasiJudul::calculateSmartScore(
@@ -316,7 +316,7 @@ class RekomendasiController extends Controller
                     $pengajuan,
                     $template
                 );
-                
+
                 $template['skor_smart'] = $smartScore;
                 $recommendations[] = $template;
             }
@@ -330,7 +330,7 @@ class RekomendasiController extends Controller
                 'success' => true,
                 'recommendations' => array_slice($recommendations, 0, 5) // Top 5
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -346,7 +346,7 @@ class RekomendasiController extends Controller
     {
         $user = Auth::user();
         $dosen = $user->dosen;
-        
+
         if (!$dosen) {
             abort(404, 'Data dosen tidak ditemukan');
         }
@@ -360,7 +360,7 @@ class RekomendasiController extends Controller
 
         // Template judul berdasarkan bidang keahlian dosen
         $templates = $this->getJudulTemplates($dosen->bidang_keahlian, $pengajuan);
-        
+
         $recommendations = [];
         foreach ($templates as $template) {
             $smartScore = RekomendasiJudul::calculateSmartScore(
@@ -368,7 +368,7 @@ class RekomendasiController extends Controller
                 $pengajuan,
                 $template
             );
-            
+
             $template['skor_smart'] = $smartScore;
             $recommendations[] = $template;
         }
@@ -391,10 +391,10 @@ class RekomendasiController extends Controller
     {
         $minat = strtolower($pengajuan->minat_skripsi);
         $keahlian = strtolower($bidang_keahlian);
-        
+
         // Template dasar berdasarkan bidang keahlian
         $templates = [];
-        
+
         if (str_contains($keahlian, 'sistem informasi') || str_contains($keahlian, 'information system')) {
             $templates[] = [
                 'judul_skripsi' => 'Sistem Informasi ' . ucfirst($minat) . ' Berbasis Web',
@@ -403,7 +403,7 @@ class RekomendasiController extends Controller
                 'bidang_keahlian' => 'Sistem Informasi',
                 'tingkat_kesulitan' => 'sedang'
             ];
-            
+
             $templates[] = [
                 'judul_skripsi' => 'Analisis dan Perancangan Sistem ' . ucfirst($minat),
                 'deskripsi_judul' => 'Penelitian untuk menganalisis kebutuhan dan merancang sistem ' . $minat,
@@ -412,7 +412,7 @@ class RekomendasiController extends Controller
                 'tingkat_kesulitan' => 'mudah'
             ];
         }
-        
+
         if (str_contains($keahlian, 'data') || str_contains($keahlian, 'mining')) {
             $templates[] = [
                 'judul_skripsi' => 'Implementasi Data Mining untuk Prediksi ' . ucfirst($minat),
@@ -422,7 +422,7 @@ class RekomendasiController extends Controller
                 'tingkat_kesulitan' => 'sulit'
             ];
         }
-        
+
         if (str_contains($keahlian, 'mobile') || str_contains($keahlian, 'android')) {
             $templates[] = [
                 'judul_skripsi' => 'Aplikasi Mobile ' . ucfirst($minat) . ' Berbasis Android',
@@ -432,7 +432,7 @@ class RekomendasiController extends Controller
                 'tingkat_kesulitan' => 'sedang'
             ];
         }
-        
+
         // Default template jika tidak ada yang cocok
         if (empty($templates)) {
             $templates[] = [
@@ -443,7 +443,7 @@ class RekomendasiController extends Controller
                 'tingkat_kesulitan' => 'mudah'
             ];
         }
-        
+
         return $templates;
     }
 
@@ -454,7 +454,7 @@ class RekomendasiController extends Controller
     {
         $user = Auth::user();
         $dosen = $user->dosen;
-        
+
         if (!$dosen) {
             return response()->json([
                 'success' => false,
@@ -467,14 +467,14 @@ class RekomendasiController extends Controller
             $dummyPengajuan = (object) [
                 'minat_skripsi' => 'teknologi informasi'
             ];
-            
+
             $templates = $this->getJudulTemplates($bidang, $dummyPengajuan);
-            
+
             return response()->json([
                 'success' => true,
                 'templates' => $templates
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
