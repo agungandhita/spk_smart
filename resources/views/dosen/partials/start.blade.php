@@ -42,7 +42,25 @@
             }
             
             .main-content {
-                margin-left: 240px !important;
+                margin-left: 250px !important;
+            }
+            
+            .container-fluid {
+                max-width: calc(100vw - 250px) !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+        }
+        
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0 !important;
+            }
+            
+            .container-fluid {
+                max-width: 100vw !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
             }
         }
         

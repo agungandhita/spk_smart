@@ -43,6 +43,12 @@
                     Rekomendasi Judul
                 </a>
             </li>
+            <li class="nav-item mb-1">
+                <a href="{{ route('mahasiswa.topik-skripsi.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('mahasiswa.topik-skripsi.*') ? 'active' : '' }}">
+                    <i class="fas fa-book me-2"></i>
+                    Referensi Topik Skripsi
+                </a>
+            </li>
         </ul>
 
         <hr class="my-3">

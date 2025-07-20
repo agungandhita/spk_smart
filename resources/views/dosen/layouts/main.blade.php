@@ -9,7 +9,7 @@
 
     <!-- Main Content Area -->
     <div class="main-content" style="margin-left: 0; transition: margin-left 0.3s ease;">
-        <main class="container-fluid" style="padding-top: 5rem; padding-left: 1.5rem; padding-right: 1.5rem;">
+        <main class="container-fluid" style="padding-top: 4rem; padding-left: 1rem; padding-right: 1rem; max-width: calc(100vw - 250px);">
             @yield('container')
         </main>
     </div>

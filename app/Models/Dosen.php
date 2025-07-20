@@ -99,4 +99,20 @@ class Dosen extends Model
     {
         return $this->user->email;
     }
+
+    /**
+     * Relasi ke TopikSkripsi
+     */
+    public function topikSkripsi()
+    {
+        return $this->hasMany(TopikSkripsi::class);
+    }
+
+    /**
+     * Get topik skripsi aktif
+     */
+    public function topikSkripsiAktif()
+    {
+        return $this->hasMany(TopikSkripsi::class)->where('status', 'aktif');
+    }
 }

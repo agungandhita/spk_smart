@@ -1,5 +1,5 @@
 <!-- Sidebar -->
-<aside id="sidebar" class="sidebar bg-white shadow-sm position-fixed top-0 start-0 h-100 d-lg-block" style="width: 240px; z-index: 1050; transform: translateX(-100%); transition: transform 0.3s ease;">
+<aside id="sidebar" class="sidebar bg-white shadow-sm position-fixed top-0 start-0 h-100 d-lg-block" style="width: 250px; z-index: 1050; transform: translateX(-100%); transition: transform 0.3s ease;">
     <!-- Sidebar Header -->
     <div class="sidebar-header p-3 border-bottom">
         <div class="d-flex align-items-center justify-content-between">
@@ -50,7 +50,7 @@
 
             <!-- Topik Skripsi -->
             <li class="nav-item mb-2">
-                <a href="" class="nav-link d-flex align-items-center py-2 px-3 rounded ">
+                <a href="{{ route('dosen.topik-skripsi.index') }}" class="nav-link d-flex align-items-center py-2 px-3 rounded {{ request()->routeIs('dosen.topik-skripsi.*') ? 'active' : '' }}">
                     <i class="fas fa-book me-2"></i>
                     Topik Skripsi
                 </a>

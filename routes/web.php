@@ -14,6 +14,8 @@ use App\Http\Controllers\mahasiswa\PembimbingController as MahasiswaPembimbingCo
 use App\Http\Controllers\dosen\PembimbingController as DosenPembimbingController;
 use App\Http\Controllers\dosen\RekomendasiController as DosenRekomendasiController;
 use App\Http\Controllers\mahasiswa\RekomendasiController as MahasiswaRekomendasiController;
+use App\Http\Controllers\TopikSkripsiController;
+use App\Http\Controllers\MahasiswaTopikSkripsiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -77,6 +79,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/rekomendasi/{rekomendasi}/respond', [MahasiswaRekomendasiController::class, 'respond'])->name('rekomendasi.respond');
         Route::patch('/rekomendasi/{rekomendasi}/accept', [MahasiswaRekomendasiController::class, 'accept'])->name('rekomendasi.accept');
         Route::patch('/rekomendasi/{rekomendasi}/reject', [MahasiswaRekomendasiController::class, 'reject'])->name('rekomendasi.reject');
+        
+        // Topik Skripsi Routes (View Only for Mahasiswa)
+        Route::get('/topik-skripsi', [MahasiswaTopikSkripsiController::class, 'index'])->name('topik-skripsi.index');
+        Route::get('/topik-skripsi/{topikSkripsi}', [MahasiswaTopikSkripsiController::class, 'show'])->name('topik-skripsi.show');
+        Route::get('/topik-skripsi/{topikSkripsi}/download', [MahasiswaTopikSkripsiController::class, 'download'])->name('topik-skripsi.download');
+        Route::get('/topik-skripsi/{topikSkripsi}/view', [MahasiswaTopikSkripsiController::class, 'view'])->name('topik-skripsi.view');
     });
 
     // Dosen Routes
@@ -104,6 +112,10 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/rekomendasi/{rekomendasi}', [DosenRekomendasiController::class, 'destroy'])->name('rekomendasi.destroy');
         Route::post('/rekomendasi/auto-generate', [DosenRekomendasiController::class, 'autoGenerate'])->name('rekomendasi.auto-generate');
         Route::get('/rekomendasi/templates/{bidang}', [DosenRekomendasiController::class, 'getTemplates'])->name('rekomendasi.templates');
+        
+        // Topik Skripsi Routes (CRUD for Dosen)
+        Route::resource('topik-skripsi', TopikSkripsiController::class);
+        Route::get('/topik-skripsi/{topikSkripsi}/download', [TopikSkripsiController::class, 'download'])->name('topik-skripsi.download');
     });
 });
 
