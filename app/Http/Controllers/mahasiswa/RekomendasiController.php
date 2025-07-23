@@ -126,7 +126,7 @@ class RekomendasiController extends Controller
         }
 
         $request->validate([
-            'catatan_mahasiswa' => 'nullable|string|max:1000',
+            'catatan' => 'nullable|string|max:1000',
         ]);
 
         $rekomendasi = RekomendasiJudul::where('mahasiswa_id', $mahasiswa->id)
@@ -138,7 +138,7 @@ class RekomendasiController extends Controller
             DB::beginTransaction();
 
             // Accept the recommendation
-            $rekomendasi->terima($request->catatan_mahasiswa);
+            $rekomendasi->terima($request->catatan);
 
             DB::commit();
 
@@ -164,7 +164,7 @@ class RekomendasiController extends Controller
         }
 
         $request->validate([
-            'catatan_mahasiswa' => 'required|string|max:1000',
+            'catatan' => 'required|string|max:1000',
         ]);
 
         $rekomendasi = RekomendasiJudul::where('mahasiswa_id', $mahasiswa->id)
@@ -176,7 +176,7 @@ class RekomendasiController extends Controller
             DB::beginTransaction();
 
             // Reject the recommendation
-            $rekomendasi->tolak($request->catatan_mahasiswa);
+            $rekomendasi->tolak($request->catatan);
 
             DB::commit();
 

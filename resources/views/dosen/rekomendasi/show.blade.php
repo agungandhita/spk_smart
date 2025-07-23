@@ -130,39 +130,113 @@
                     </div>
                     
                     @if($rekomendasi->kriteria_smart)
-                        <h6 class="mb-3">Detail Kriteria SMART:</h6>
-                        <div class="row">
-                            @php
-                                $kriteria = $rekomendasi->kriteria_smart;
-                                $labels = [
-                                    'ipk_score' => ['IPK Score (30%)', 'fas fa-graduation-cap', 'primary'],
-                                    'semester_score' => ['Semester Score (20%)', 'fas fa-calendar', 'info'],
-                                    'minat_match' => ['Kesesuaian Minat (25%)', 'fas fa-heart', 'warning'],
-                                    'dosen_expertise' => ['Keahlian Dosen (15%)', 'fas fa-user-tie', 'secondary'],
-                                    'difficulty_score' => ['Tingkat Kesulitan (10%)', 'fas fa-chart-bar', 'danger']
-                                ];
-                            @endphp
-                            
-                            @foreach($labels as $key => $label)
-                                @if(isset($kriteria[$key]))
-                                    <div class="col-md-6 mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3">
-                                                <i class="{{ $label[1] }} text-{{ $label[2] }} fa-lg"></i>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <div class="fw-medium">{{ $label[0] }}</div>
-                                                <div class="progress" style="height: 8px;">
-                                                    <div class="progress-bar bg-{{ $label[2] }}" 
-                                                         style="width: {{ $kriteria[$key] }}%"></div>
+                        <h6 class="mb-3">Detail Perhitungan SMART:</h6>
+                        
+                        @if(isset($rekomendasi->kriteria_smart['methodology']))
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Metodologi:</strong> {{ $rekomendasi->kriteria_smart['methodology'] }}
+                                @if(isset($rekomendasi->kriteria_smart['calculation_date']))
+                                    <br><small>Dihitung pada: {{ \Carbon\Carbon::parse($rekomendasi->kriteria_smart['calculation_date'])->format('d/m/Y H:i') }}</small>
+                                @endif
+                            </div>
+                        @endif
+                        
+                        @if(isset($rekomendasi->kriteria_smart['criteria_values']))
+                            <div class="row">
+                                @php
+                                    $criteriaValues = $rekomendasi->kriteria_smart['criteria_values'];
+                                    $criteriaWeights = $rekomendasi->kriteria_smart['criteria_weights'] ?? [];
+                                    $labels = [
+                                        'ipk' => ['IPK', 'fas fa-graduation-cap', 'primary'],
+                                        'semester' => ['Semester', 'fas fa-calendar', 'info'],
+                                        'minat_match' => ['Kesesuaian Minat', 'fas fa-heart', 'warning'],
+                                        'dosen_expertise' => ['Keahlian Dosen', 'fas fa-user-tie', 'secondary'],
+                                        'difficulty' => ['Tingkat Kesulitan', 'fas fa-chart-bar', 'danger']
+                                    ];
+                                @endphp
+                                
+                                @foreach($labels as $key => $label)
+                                    @if(isset($criteriaValues[$key]))
+                                        @php
+                                            $criteriaData = $criteriaValues[$key];
+                                            $weight = isset($criteriaWeights[$key]) ? $criteriaWeights[$key]['weight'] : 0;
+                                            $normalizedWeight = isset($criteriaWeights[$key]) ? $criteriaWeights[$key]['normalized_weight'] : 0;
+                                            $normalizedValue = $criteriaData['normalized_value'] ?? 0;
+                                            $rawValue = $criteriaData['raw_value'] ?? 0;
+                                            $criteriaType = $criteriaData['type'] ?? 'benefit';
+                                        @endphp
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-0 bg-light">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="{{ $label[1] }} text-{{ $label[2] }} me-2"></i>
+                                                        <strong>{{ $label[0] }}</strong>
+                                                        <span class="badge bg-{{ $label[2] }} ms-auto">{{ $weight }}%</span>
+                                                    </div>
+                                                    
+                                                    <div class="mb-2">
+                                                        <small class="text-muted">Nilai Asli:</small>
+                                                        <div class="fw-medium">{{ number_format($rawValue, 2) }}</div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-2">
+                                                        <small class="text-muted">Nilai Ternormalisasi ({{ ucfirst($criteriaType) }}):</small>
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar bg-{{ $label[2] }}" 
+                                                                 style="width: {{ $normalizedValue * 100 }}%"></div>
+                                                        </div>
+                                                        <small class="text-muted">{{ number_format($normalizedValue, 3) }}</small>
+                                                    </div>
+                                                    
+                                                    <div>
+                                                        <small class="text-muted">Kontribusi ke Skor Final:</small>
+                                                        <div class="fw-medium text-{{ $label[2] }}">
+                                                            {{ number_format($normalizedWeight * $normalizedValue * 100, 2) }} poin
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <small class="text-muted">{{ number_format($kriteria[$key], 2) }}/100</small>
                                             </div>
                                         </div>
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @else
+                            {{-- Fallback untuk format lama --}}
+                            <div class="row">
+                                @php
+                                    $kriteria = $rekomendasi->kriteria_smart;
+                                    $labels = [
+                                        'ipk_score' => ['IPK Score (30%)', 'fas fa-graduation-cap', 'primary'],
+                                        'semester_score' => ['Semester Score (20%)', 'fas fa-calendar', 'info'],
+                                        'minat_match' => ['Kesesuaian Minat (25%)', 'fas fa-heart', 'warning'],
+                                        'dosen_expertise' => ['Keahlian Dosen (15%)', 'fas fa-user-tie', 'secondary'],
+                                        'difficulty_score' => ['Tingkat Kesulitan (10%)', 'fas fa-chart-bar', 'danger']
+                                    ];
+                                @endphp
+                                
+                                @foreach($labels as $key => $label)
+                                    @if(isset($kriteria[$key]))
+                                        <div class="col-md-6 mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <i class="{{ $label[1] }} text-{{ $label[2] }} fa-lg"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-medium">{{ $label[0] }}</div>
+                                                    <div class="progress" style="height: 8px;">
+                                                        <div class="progress-bar bg-{{ $label[2] }}" 
+                                                             style="width: {{ $kriteria[$key] }}%"></div>
+                                                    </div>
+                                                    <small class="text-muted">{{ number_format($kriteria[$key], 2) }}/100</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
                     @endif
                 </div>
             </div>

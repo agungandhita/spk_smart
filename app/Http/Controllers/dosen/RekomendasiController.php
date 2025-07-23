@@ -123,37 +123,32 @@ class RekomendasiController extends Controller
         try {
             DB::beginTransaction();
 
-            // Calculate SMART score
+            // Calculate SMART score using proper methodology
             $judul_data = [
+                'judul_skripsi' => $request->judul_skripsi,
+                'deskripsi_judul' => $request->deskripsi_judul,
+                'tipe_skripsi' => $request->tipe_skripsi,
                 'bidang_keahlian' => $request->bidang_keahlian,
                 'tingkat_kesulitan' => $request->tingkat_kesulitan
             ];
 
-            $smartScore = RekomendasiJudul::calculateSmartScore(
+            // Use detailed SMART calculation for single alternative
+            $smartResults = RekomendasiJudul::calculateSmartScoreDetailed(
                 $pengajuan->mahasiswa,
                 $pengajuan,
-                $judul_data
+                [$judul_data]
             );
 
-            // Prepare criteria details for storage
+            $smartResult = $smartResults[0];
+            $smartScore = $smartResult['smart_score'];
+            
+            // Prepare detailed criteria for storage
             $kriteria_smart = [
-                'ipk_score' => ($pengajuan->mahasiswa->nilai->last()->ipk ?? 0) * 25,
-                'semester_score' => min(($pengajuan->mahasiswa->semester ?? 1) * 12.5, 100),
-                'minat_match' => $this->calculateStringsSimilarity(
-                    strtolower($pengajuan->minat_skripsi),
-                    strtolower($request->bidang_keahlian)
-                ) * 100,
-                'dosen_expertise' => $this->calculateStringsSimilarity(
-                    strtolower($dosen->bidang_keahlian ?? ''),
-                    strtolower($request->bidang_keahlian)
-                ) * 100,
-                'difficulty_score' => match($request->tingkat_kesulitan) {
-                    'mudah' => 100,
-                    'sedang' => 75,
-                    'sulit' => 50,
-                    default => 75
-                },
-                'total_score' => $smartScore
+                'methodology' => 'SMART (Simple Multi-Attribute Rating Technique)',
+                'criteria_weights' => $smartResult['normalized_criteria'],
+                'criteria_values' => $smartResult['criteria_details'],
+                'total_score' => $smartScore,
+                'calculation_date' => now()->toISOString()
             ];
 
             // Create recommendation
@@ -261,23 +256,7 @@ class RekomendasiController extends Controller
         }
     }
 
-    /**
-     * Calculate string similarity using Levenshtein distance
-     */
-    private function calculateStringsSimilarity($str1, $str2): float
-    {
-        $len1 = strlen($str1);
-        $len2 = strlen($str2);
-
-        if ($len1 == 0 || $len2 == 0) {
-            return 0;
-        }
-
-        $distance = levenshtein($str1, $str2);
-        $maxLen = max($len1, $len2);
-
-        return 1 - ($distance / $maxLen);
-    }
+    // Method calculateStringsSimilarity removed - now handled by SmartCalculationService
 
     /**
      * Auto generate recommendations via AJAX
@@ -309,26 +288,32 @@ class RekomendasiController extends Controller
             // Template judul berdasarkan bidang keahlian dosen
             $templates = $this->getJudulTemplates($dosen->bidang_keahlian, $pengajuan);
 
+            // Calculate SMART scores using proper methodology
+            $smartResults = RekomendasiJudul::calculateSmartScoreDetailed(
+                $pengajuan->mahasiswa,
+                $pengajuan,
+                $templates
+            );
+
+            // Format recommendations with detailed SMART analysis
             $recommendations = [];
-            foreach ($templates as $template) {
-                $smartScore = RekomendasiJudul::calculateSmartScore(
-                    $pengajuan->mahasiswa,
-                    $pengajuan,
-                    $template
-                );
-
-                $template['skor_smart'] = $smartScore;
-                $recommendations[] = $template;
+            foreach ($smartResults as $result) {
+                $recommendation = $result['alternative'];
+                $recommendation['skor_smart'] = $result['smart_score'];
+                $recommendation['smart_details'] = [
+                    'criteria_breakdown' => $result['criteria_details'],
+                    'normalized_criteria' => $result['normalized_criteria']
+                ];
+                $recommendations[] = $recommendation;
             }
-
-            // Sort by SMART score descending
-            usort($recommendations, function($a, $b) {
-                return $b['skor_smart'] <=> $a['skor_smart'];
-            });
 
             return response()->json([
                 'success' => true,
-                'recommendations' => array_slice($recommendations, 0, 5) // Top 5
+                'recommendations' => array_slice($recommendations, 0, 5), // Top 5
+                'smart_methodology' => [
+                    'description' => 'Menggunakan metode SMART (Simple Multi-Attribute Rating Technique) dengan normalisasi bobot dan nilai yang benar',
+                    'criteria' => RekomendasiJudul::getSmartCriteria()
+                ]
             ]);
 
         } catch (\Exception $e) {
@@ -361,26 +346,32 @@ class RekomendasiController extends Controller
         // Template judul berdasarkan bidang keahlian dosen
         $templates = $this->getJudulTemplates($dosen->bidang_keahlian, $pengajuan);
 
+        // Calculate SMART scores using proper methodology
+        $smartResults = RekomendasiJudul::calculateSmartScoreDetailed(
+            $pengajuan->mahasiswa,
+            $pengajuan,
+            $templates
+        );
+
+        // Format recommendations with detailed SMART analysis
         $recommendations = [];
-        foreach ($templates as $template) {
-            $smartScore = RekomendasiJudul::calculateSmartScore(
-                $pengajuan->mahasiswa,
-                $pengajuan,
-                $template
-            );
-
-            $template['skor_smart'] = $smartScore;
-            $recommendations[] = $template;
+        foreach ($smartResults as $result) {
+            $recommendation = $result['alternative'];
+            $recommendation['skor_smart'] = $result['smart_score'];
+            $recommendation['smart_details'] = [
+                'criteria_breakdown' => $result['criteria_details'],
+                'normalized_criteria' => $result['normalized_criteria']
+            ];
+            $recommendations[] = $recommendation;
         }
-
-        // Sort by SMART score descending
-        usort($recommendations, function($a, $b) {
-            return $b['skor_smart'] <=> $a['skor_smart'];
-        });
 
         return response()->json([
             'success' => true,
-            'recommendations' => array_slice($recommendations, 0, 5) // Top 5
+            'recommendations' => array_slice($recommendations, 0, 5), // Top 5
+            'smart_methodology' => [
+                'description' => 'Menggunakan metode SMART (Simple Multi-Attribute Rating Technique) dengan normalisasi bobot dan nilai yang benar',
+                'criteria' => RekomendasiJudul::getSmartCriteria()
+            ]
         ]);
     }
 

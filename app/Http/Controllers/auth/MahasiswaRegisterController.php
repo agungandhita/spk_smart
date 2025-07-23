@@ -60,10 +60,7 @@ class MahasiswaRegisterController extends Controller
 
             DB::commit();
 
-            // Auto login setelah register
-            auth()->login($user);
-
-            return redirect()->route('mahasiswa.dashboard')
+            return redirect()->route('login')
                 ->with('success', 'Registrasi mahasiswa berhasil! Selamat datang.');
 
         } catch (\Exception $e) {

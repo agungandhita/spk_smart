@@ -64,10 +64,7 @@ class DosenRegisterController extends Controller
 
             DB::commit();
 
-            // Auto login setelah register
-            auth()->login($user);
-
-            return redirect()->route('dosen.dashboard')
+            return redirect()->route('login')
                 ->with('success', 'Registrasi dosen berhasil! Selamat datang.');
 
         } catch (\Exception $e) {

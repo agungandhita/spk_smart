@@ -110,55 +110,31 @@ class RekomendasiJudul extends Model
     }
 
     /**
-     * Calculate SMART score based on criteria
+     * Calculate SMART score based on criteria (DEPRECATED - Use SmartCalculationService)
+     * Kept for backward compatibility
      */
     public static function calculateSmartScore($mahasiswa, $pengajuan, $judul_data): float
     {
-        // Kriteria SMART dengan bobot
-        $criteria = [
-            'ipk' => 0.30,           // 30% - Nilai akademik
-            'semester' => 0.20,      // 20% - Tingkat semester
-            'minat_match' => 0.25,   // 25% - Kesesuaian minat
-            'dosen_expertise' => 0.15, // 15% - Keahlian dosen
-            'difficulty' => 0.10     // 10% - Tingkat kesulitan
-        ];
+        $smartService = new \App\Services\SmartCalculationService();
+        return $smartService->calculateSingleAlternative($mahasiswa, $pengajuan, $judul_data);
+    }
 
-        // Normalisasi nilai IPK (0-4 menjadi 0-100)
-        $ipk_score = ($mahasiswa->nilai->last()->ipk ?? 0) * 25;
-        
-        // Normalisasi semester (semakin tinggi semakin baik, max semester 8)
-        $semester_score = min(($mahasiswa->semester ?? 1) * 12.5, 100);
-        
-        // Kesesuaian minat (berdasarkan similarity string)
-        $minat_match = self::calculateStringsimilarity(
-            strtolower($pengajuan->minat_skripsi),
-            strtolower($judul_data['bidang_keahlian'])
-        ) * 100;
-        
-        // Keahlian dosen (berdasarkan bidang keahlian)
-        $dosen_expertise = self::calculateStringsimilarity(
-            strtolower($pengajuan->dosen->keahlian ?? ''),
-            strtolower($judul_data['bidang_keahlian'])
-        ) * 100;
-        
-        // Tingkat kesulitan (inverse scoring - mudah = 100, sulit = 50)
-        $difficulty_score = match($judul_data['tingkat_kesulitan']) {
-            'mudah' => 100,
-            'sedang' => 75,
-            'sulit' => 50,
-            default => 75
-        };
+    /**
+     * Calculate SMART score with detailed breakdown using proper SMART methodology
+     */
+    public static function calculateSmartScoreDetailed($mahasiswa, $pengajuan, $alternatives): array
+    {
+        $smartService = new \App\Services\SmartCalculationService();
+        return $smartService->calculateMultipleAlternatives($mahasiswa, $pengajuan, $alternatives);
+    }
 
-        // Perhitungan SMART Score
-        $smart_score = (
-            $ipk_score * $criteria['ipk'] +
-            $semester_score * $criteria['semester'] +
-            $minat_match * $criteria['minat_match'] +
-            $dosen_expertise * $criteria['dosen_expertise'] +
-            $difficulty_score * $criteria['difficulty']
-        );
-
-        return round($smart_score, 2);
+    /**
+     * Get SMART criteria information
+     */
+    public static function getSmartCriteria(): array
+    {
+        $smartService = new \App\Services\SmartCalculationService();
+        return $smartService->getNormalizedCriteria();
     }
 
     /**
